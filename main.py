@@ -11,7 +11,9 @@ class Lox():
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
 
-        [print(t) for t in tokens]
+        for t in tokens:
+            print(t)
+
         return
 
     def run_file(self, filename):
@@ -23,7 +25,7 @@ class Lox():
         if self.has_errors:
             return 65
         else:
-            return 0 
+            return 0
 
     def run_prompt(self):
         while True:
@@ -36,12 +38,11 @@ class Lox():
 if __name__ == '__main__':
     if len(sys.argv[1:]) > 1:
         print("Usage: plox [script]")
-        
+
     elif len(sys.argv[1:]) == 1:
         l = Lox()
         l.run_file(sys.argv[1])
-        
+
     else:
         l = Lox()
         l.run_prompt()
-

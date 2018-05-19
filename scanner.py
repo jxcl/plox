@@ -1,19 +1,19 @@
-from token import TokenType, Token, reserved_keywords
+from .token import TokenType, Token, RESERVED_KEYWORDS
 
 class Scanner:
     def __init__(self, source):
         self.errors = []
-        
+
         self.source = source
         self.token_list = []
 
         self.start = 0
         self.current = 0
-        self.line = 0
+        self.line = 1
 
     def error(self, line, message):
         self.errors.append((line, "", message))
-        
+
     def is_at_end(self):
         return self.current >= len(self.source)
 
@@ -54,8 +54,10 @@ class Scanner:
             if self.match('/'):
                 while self.peek() != '\n' and not self.is_at_end():
                     self.advance()
+            elif self.match('*'):
+                self.multiline_comment()
             else:
-                self.add_token(TokenType.SLASH)                
+                self.add_token(TokenType.SLASH)
         elif c in [' ', '\r', '\t']:
             pass
         elif c == '\n':
@@ -68,9 +70,28 @@ class Scanner:
             self.number()
         elif self.is_alpha(c):
             self.identifier()
-            
+
         else:
             self.error(self.line, "Unexpected character: {}".format(c))
+
+    def multiline_comment(self):
+        while (
+                self.peek() != '*' and
+                self.peek_next() != '/' and
+                not self.is_at_end()
+        ):
+            if self.peek() == '\n':
+                self.line += 1
+
+            self.advance()
+
+        if self.is_at_end():
+            self.error(self.line, "Unterminated multiline comment")
+            return
+
+        # consume trailing */
+        self.advance()
+        self.advance()
 
     def is_alpha(self, c):
         return (
@@ -78,7 +99,7 @@ class Scanner:
             ('A' <= c <= 'Z') or
             c == '_'
         )
-    
+
     def is_digit(self, c):
         return '0' <= c <= '9'
 
@@ -90,13 +111,13 @@ class Scanner:
             self.advance()
 
         name = self.source[self.start:self.current]
-        
-        if name in reserved_keywords.keys():
-            self.add_token(reserved_keywords[name])
+
+        if name in RESERVED_KEYWORDS.keys():
+            self.add_token(RESERVED_KEYWORDS[name])
         else:
             self.add_token(TokenType.IDENTIFIER)
-            
-    
+
+
     def number(self):
         while self.is_digit(self.peek()):
             self.advance()
@@ -111,12 +132,12 @@ class Scanner:
             TokenType.NUMBER,
             float(self.source[self.start:self.current])
         )
-                             
-        
+
+
     def string(self):
         while self.peek() != '"' and not self.is_at_end():
             if self.peek() == '\n':
-                line += 1
+                self.line += 1
             self.advance()
 
         if self.is_at_end():
@@ -130,7 +151,7 @@ class Scanner:
         value = self.source[self.start + 1:self.current - 1]
 
         self.add_token(TokenType.STRING, value)
-        
+
     def peek(self):
         if self.is_at_end():
             return '\0'
@@ -142,7 +163,7 @@ class Scanner:
             return '\0'
 
         return self.source[self.current + 1]
-        
+
     def match(self, expected):
         if self.is_at_end():
             return False
@@ -152,25 +173,23 @@ class Scanner:
 
         self.current += 1
         return True
-        
+
     def advance(self):
         self.current += 1
         return self.source[self.current - 1]
 
     def add_token(self, token_type, literal=None):
         text = ''
-        
+
         if literal is not None:
             text = self.source[self.start:self.current]
 
         self.token_list.append(Token(token_type, text, literal, self.line))
-    
+
     def scan_tokens(self):
         while not self.is_at_end():
-            self.start = self.current;
+            self.start = self.current
             self.scan_token()
 
         self.token_list.append(Token(TokenType.EOF, '', None, self.line))
         return self.token_list
-                               
-    

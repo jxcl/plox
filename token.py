@@ -50,7 +50,7 @@ class TokenType(Enum):
 
     EOF = auto()
 
-    
+
 class Token:
     def __init__(self, token_type, lexeme, literal, line):
         self.token_type = token_type
@@ -59,13 +59,20 @@ class Token:
         self.line = line
 
     def __str__(self):
-        return "{} {} {}".format(
+        return "{} {} {} {}".format(
             self.token_type,
             self.lexeme,
-            self.literal
+            self.literal,
+            self.line
         )
 
-reserved_keywords = {
+    def __repr__(self):
+        return self.__str__()
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+RESERVED_KEYWORDS = {
     'and': TokenType.AND,
     'class': TokenType.CLASS,
     'else': TokenType.ELSE,
