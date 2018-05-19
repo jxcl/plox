@@ -1,0 +1,6 @@
+// this is a comment
+(( )){} // grouping stuff
+!*+-/=<> <= == // operators
+"this is as string"
+and or"this"+2
+13.23"test"222
